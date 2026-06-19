@@ -3,20 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eventos</title>
+    <title>Eventos Uninassau</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Eventos Disponíveis para Inscrição</h1>
-    <ul>
-        {% for evento in eventos %}
-        <li>
-            <strong>{{ evento.titulo}}</strong><br>
-            Data de Inicio: {{ evento.data_inicio}} <br>
-            Carga Horária: {{ evento.carga_horaria }}
-        </li>
-        <hr>
-        {% empty %}
-        <p>Nenhum evento com inscrições abertas no momentos</p>
-    </ul>
+<body class="bg-light">
+    
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">Sistema de Certificados - Uninassau</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="mb-4">Eventos Disponíveis</h2>
+        
+        <div class="row">
+            {% for evento in eventos %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ evento.titulo }}</h5>
+                        <p class="card-text text-muted mb-4">
+                            <strong>Início:</strong> {{ evento.data_inicio|date:"d/m/Y H:i" }}<br>
+                            <strong>Carga Horária:</strong> {{ evento.carga_horaria }}h
+                        </p>
+                        <a href="#" class="btn btn-primary mt-auto">Inscrever-se</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning" role="alert">
+                    Nenhum evento com inscrições abertas no momento.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
 </body>
 </html>
