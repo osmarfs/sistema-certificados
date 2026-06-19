@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventos</title>
+</head>
+<body>
+    <h1>Eventos Disponíveis para Inscrição</h1>
+    <ul>
+        {% for evento in eventos %}
+        <li>
+            <strong>{{ evento.titulo}}</strong><br>
+            Data de Inicio: {{ evento.data_inicio}} <br>
+            Carga Horária: {{ evento.carga_horaria }}
+        </li>
+        <hr>
+        {% empty %}
+        <p>Nenhum evento com inscrições abertas no momentos</p>
+    </ul>
+</body>
+</html>
