@@ -1,5 +1,5 @@
 from django import forms
-from .models import Evento
+from .models import Evento, AlunoPerfil
 from django.contrib.auth.models import User
 
 class EventoForm(forms.ModelForm):
@@ -28,4 +28,17 @@ class PerfilForm(forms.ModelForm):
             'first_name': 'Nome',
             'last_name': 'Sobrenome',
             'email': 'E-mail',
+        }
+
+class AlunoPerfilForm(forms.ModelForm):
+    class Meta:
+        model = AlunoPerfil
+        fields = ['cpf', 'telefone']
+        widgets = {
+            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00', 'required': 'required'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+        }
+        labels = {
+            'cpf': 'CPF',
+            'telefone': 'Telefone',
         }

@@ -36,7 +36,8 @@
                         
                         <form method="POST">
                             {% csrf_token %}
-                            {{ form.as_p }}
+                            {{ form_user.as_p }}
+                            {{ form_perfil.as_p }}
                             <hr>
                             <div class="text-end mt-3">
                                 <button type="submit" class="btn btn-primary">Salvar Alterações</button>

@@ -2,6 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 
+# Adicione esta classe logo abaixo das importações
+class AlunoPerfil(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    cpf = models.CharField(max_length=14, unique=True)
+    telefone = models.CharField(max_length=15, blank=True, null=True)
+
+    def __str__(self):
+        return f"Perfil de {self.user.username}"
+
 class Evento(models.Model):
     titulo = models.CharField(max_length=200)
     data_inicio = models.DateTimeField()

@@ -6,9 +6,9 @@ from django.contrib.auth import login
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.pdfgen import canvas
-from .forms import EventoForm, PerfilForm
+from .forms import EventoForm, PerfilForm, AlunoPerfilForm
 from django.utils import timezone
-from .models import Evento, Inscricao
+from .models import Evento, Inscricao, AlunoPerfil
 import qrcode
 import base64
 from io import BytesIO
@@ -90,19 +90,25 @@ def validar_checkin(request):
     return render(request, 'eventos/checkin.html')
 
 def cadastro_aluno(request):
-    # Se o aluno preencheu o formulário e clicou em enviar
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save() # Salva o usuário no banco
-            login(request, user) # Faz o login automático
-            messages.success(request, 'Cadastro realizado com sucesso! Bem-vindo(a).')
+        form_user = UserCreationForm(request.POST)
+        form_perfil = AlunoPerfilForm(request.POST)
+        
+        if form_user.is_valid() and form_perfil.is_valid():
+            user = form_user.save()
+            # Salva o perfil atrelando-o ao usuário recém-criado
+            perfil = form_perfil.save(commit=False)
+            perfil.user = user
+            perfil.save()
+            
+            login(request, user)
+            messages.success(request, 'Cadastro realizado com sucesso!')
             return redirect('lista_eventos')
     else:
-        # Se ele apenas abriu a página, carrega o formulário vazio
-        form = UserCreationForm()
+        form_user = UserCreationForm()
+        form_perfil = AlunoPerfilForm()
         
-    return render(request, 'eventos/cadastro.html', {'form': form})
+    return render(request, 'eventos/cadastro.html', {'form_user': form_user, 'form_perfil': form_perfil})
 
 # Exige a permissão nativa de adicionar eventos. Se não tiver, levanta erro de acesso negado.
 @permission_required('eventos.add_evento', raise_exception=True)
@@ -121,61 +127,48 @@ def criar_evento(request):
 
 @login_required(login_url='/login/')
 def gerar_certificado(request, inscricao_id):
-    # Garante que a inscrição pertence ao aluno logado e que a presença foi confirmada
     inscricao = get_object_or_404(Inscricao, id=inscricao_id, aluno=request.user, presenca_confirmada=True)
     evento = inscricao.evento
 
-    # Configura a resposta do Django para retornar um arquivo PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="certificado_{evento.id}.pdf"'
 
-    # Cria o arquivo PDF usando orientação de paisagem (landscape)
     p = canvas.Canvas(response, pagesize=landscape(letter))
     width, height = landscape(letter)
 
-    # --- Desenho do Layout do Certificado ---
-    # Borda externa
-    p.setLineWidth(4)
-    p.rect(20, 20, width - 40, height - 40)
-    
-    # Borda interna fina
-    p.setLineWidth(1)
-    p.rect(25, 25, width - 50, height - 50)
+    # 1. Aplica a imagem de template do banco de dados como fundo
+    if evento.template_certificado:
+        # Pega o caminho absoluto da imagem no disco
+        caminho_imagem = evento.template_certificado.path
+        p.drawImage(caminho_imagem, 0, 0, width=width, height=height)
+    else:
+        # Fallback caso o evento não tenha imagem de template
+        p.setLineWidth(4)
+        p.rect(20, 20, width - 40, height - 40)
+        p.setFont("Helvetica-Bold", 32)
+        p.drawCentredString(width / 2, height - 100, "CERTIFICADO DE PARTICIPAÇÃO")
 
-    # Título Principal
-    p.setFont("Helvetica-Bold", 32)
-    p.drawCentredString(width / 2, height - 100, "CERTIFICADO DE PARTICIPAÇÃO")
-
-    # Texto de Conclusão
-    p.setFont("Helvetica", 18)
-    # Pega o nome completo, ou usa o username caso o aluno não tenha preenchido o perfil
+    # 2. Resgata o nome e o CPF
     nome_aluno = f"{inscricao.aluno.first_name} {inscricao.aluno.last_name}".strip()
     if not nome_aluno:
         nome_aluno = inscricao.aluno.username
+        
+    try:
+        cpf_aluno = inscricao.aluno.alunoperfil.cpf
+    except AlunoPerfil.DoesNotExist:
+        cpf_aluno = "CPF não registrado"
 
-    texto = f"Certificamos que {nome_aluno.upper()} participou do evento"
-    p.drawCentredString(width / 2, height - 180, texto)
-
-    # Nome do Evento
-    p.setFont("Helvetica-Bold", 24)
-    p.drawCentredString(width / 2, height - 230, f"'{evento.titulo}'")
-
-    # Detalhes de Carga Horária
-    p.setFont("Helvetica", 14)
-    detalhes = f"Realizado em {evento.data_inicio.strftime('%d/%m/%Y')} com carga horária total de {evento.carga_horaria} horas."
-    p.drawCentredString(width / 2, height - 300, detalhes)
-
-    # Linha e espaço para assinatura da coordenação
-    p.setLineWidth(1)
-    p.line(width / 2 - 150, 100, width / 2 + 150, 100)
-    p.setFont("Helvetica", 12)
-    p.drawCentredString(width / 2, 80, "Coordenação de Extensão")
+    # 3. Desenha os dados do aluno por cima da imagem. 
+    # Eixo X (width/2) centraliza. Eixo Y (height/2) controla a altura.
+    p.setFont("Helvetica-Bold", 26)
+    p.drawCentredString(width / 2, height / 2 + 10, nome_aluno.upper())
     
-    # Código de autenticidade (UUID gerado no check-in)
-    p.setFont("Helvetica-Oblique", 9)
-    p.drawString(40, 40, f"Código de Autenticação: {inscricao.ticket_hash}")
+    p.setFont("Helvetica", 14)
+    p.drawCentredString(width / 2, height / 2 - 20, f"Portador(a) do CPF: {cpf_aluno}")
+    
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawString(30, 30, f"Código de Autenticação: {inscricao.ticket_hash}")
 
-    # Finaliza o PDF
     p.showPage()
     p.save()
     
@@ -184,15 +177,20 @@ def gerar_certificado(request, inscricao_id):
 
 @login_required(login_url='/login/')
 def perfil_usuario(request):
+    # Garante que administradores antigos sem perfil não gerem erro ao acessar a tela
+    perfil, created = AlunoPerfil.objects.get_or_create(user=request.user)
+    
     if request.method == 'POST':
-        # Passamos 'instance=request.user' para que o Django saiba que estamos ATUALIZANDO o usuário atual
-        form = PerfilForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Seu perfil foi atualizado com sucesso.')
+        form_user = PerfilForm(request.POST, instance=request.user)
+        form_perfil = AlunoPerfilForm(request.POST, instance=perfil)
+        
+        if form_user.is_valid() and form_perfil.is_valid():
+            form_user.save()
+            form_perfil.save()
+            messages.success(request, 'Dados atualizados com sucesso.')
             return redirect('perfil_usuario')
     else:
-        # Carrega o formulário já preenchido com os dados atuais do banco
-        form = PerfilForm(instance=request.user)
+        form_user = PerfilForm(instance=request.user)
+        form_perfil = AlunoPerfilForm(instance=perfil)
         
-    return render(request, 'eventos/perfil.html', {'form': form})
+    return render(request, 'eventos/perfil.html', {'form_user': form_user, 'form_perfil': form_perfil})
