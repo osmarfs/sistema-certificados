@@ -11,6 +11,28 @@
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container">
             <span class="navbar-brand mb-0 h1">Sistema de Certificados - Uninassau</span>
+            
+            <div>
+                {% if user.is_authenticated %}
+                    <span class="text-light me-3">Olá, {{ user.username }}</span>
+                    
+                    {% if perms.eventos.add_evento %}
+                        <a href="{% url 'criar_evento' %}" class="btn btn-warning btn-sm me-2">Painel do Palestrante</a>
+                    {% endif %}
+                    
+                    <a href="{% url 'perfil_usuario' %}" class="btn btn-info btn-sm me-2 text-white">Meu Perfil</a>
+                    
+                    <a href="{% url 'meus_eventos' %}" class="btn btn-primary btn-sm me-2">Meus Ingressos</a>
+                    
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Sair</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">Entrar</a>
+                    <a href="{% url 'cadastro' %}" class="btn btn-success btn-sm">Cadastrar-se</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 

@@ -41,9 +41,12 @@
                         <p class="text-muted mb-1"><strong>Data:</strong> {{ ingresso.inscricao.evento.data_inicio|date:"d/m/Y H:i" }}</p>
                         
                         {% if ingresso.inscricao.presenca_confirmada %}
-                            <span class="badge bg-success mt-2">Presença Confirmada</span>
+                            <div class="mt-2">
+                                <span class="badge bg-success d-block mb-2">Presença Confirmada</span>
+                                <a href="{% url 'gerar_certificado' ingresso.inscricao.id %}" class="btn btn-success btn-sm w-100">Baixar Certificado (PDF)</a>
+                            </div>
                         {% else %}
-                            <span class="badge bg-warning text-dark mt-2">Aguardando Check-in</span>
+                            <span class="badge bg-warning text-dark mt-2 d-block">Aguardando Check-in</span>
                         {% endif %}
                     </div>
                     <div class="card-footer bg-white border-0 text-muted small">

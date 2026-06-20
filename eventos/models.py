@@ -6,8 +6,10 @@ class Evento(models.Model):
     titulo = models.CharField(max_length=200)
     data_inicio = models.DateTimeField()
     data_fim = models.DateTimeField()
-    carga_horaria = models.IntegerField(help_text="Carga horaria em horas")
-    template_certificados = models.ImageField(upload_to='templates/', blank=True, null=True)
+    carga_horaria = models.IntegerField(help_text="Carga horária em horas")
+    
+    # Esta linha DEVE estar aqui
+    template_certificado = models.ImageField(upload_to='templates/', blank=True, null=True)
 
     def __str__(self):
         return self.titulo

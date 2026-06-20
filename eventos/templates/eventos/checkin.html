@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portaria - Check-in</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body class="bg-light">
 
@@ -30,17 +31,21 @@
 
                 <div class="card shadow mt-4">
                     <div class="card-header bg-secondary text-white">
-                        <h4 class="mb-0">Validação de Ingressos</h4>
+                        <h4 class="mb-0">Câmera da Portaria</h4>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-4">Posicione o cursor no campo abaixo e utilize o leitor de QR Code.</p>
                         
-                        <form method="POST" action="{% url 'validar_checkin' %}">
+                        <div id="reader" width="100%" class="mb-3"></div>
+                        
+                        <hr>
+                        <p class="text-muted small mb-2">Ou insira o código manualmente (Leitor USB):</p>
+                        
+                        <form id="checkin_form" method="POST" action="{% url 'validar_checkin' %}">
                             {% csrf_token %}
-                            <div class="input-group mb-3 input-group-lg">
-                                <input type="text" name="ticket_hash" class="form-control text-center" placeholder="Aguardando leitura do QR Code..." autofocus required autocomplete="off">
+                            <div class="input-group">
+                                <input type="text" id="ticket_hash_input" name="ticket_hash" class="form-control text-center" placeholder="Aguardando código..." autofocus autocomplete="off" required>
+                                <button type="submit" class="btn btn-primary">Validar</button>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100 btn-lg d-none">Processar (Oculto)</button>
                         </form>
                         
                     </div>
@@ -48,6 +53,34 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Função ativada quando a câmera acha um QR Code válido
+        function onScanSuccess(decodedText, decodedResult) {
+            // 1. Para o scanner para não ler duas vezes seguidas
+            html5QrcodeScanner.clear();
+            
+            // 2. Joga o texto lido no campo de input do formulário
+            document.getElementById('ticket_hash_input').value = decodedText;
+            
+            // 3. Aperta o botão de enviar automaticamente
+            document.getElementById('checkin_form').submit();
+        }
+
+        // Função caso a leitura falhe (ignoramos para ele continuar tentando)
+        function onScanFailure(error) {
+            // console.warn(`Erro na leitura = ${error}`);
+        }
+
+        // Configuração da câmera (quadrado de leitura)
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            /* verbose= */ false);
+            
+        // Inicia o leitor de fato
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    </script>
 
 </body>
 </html>
