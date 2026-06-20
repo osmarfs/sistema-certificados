@@ -27,7 +27,7 @@
                             <strong>Início:</strong> {{ evento.data_inicio|date:"d/m/Y H:i" }}<br>
                             <strong>Carga Horária:</strong> {{ evento.carga_horaria }}h
                         </p>
-                        <a href="#" class="btn btn-primary mt-auto">Inscrever-se</a>
+                        <a href="{% url 'inscrever_evento' evento.id %}" class="btn btn-primary mt-auto">Inscrever-se</a>
                     </div>
                 </div>
             </div>

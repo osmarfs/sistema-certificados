@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Ingressos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">Sistema de Certificados - Uninassau</span>
+            <a href="{% url 'lista_eventos' %}" class="btn btn-outline-light btn-sm">Voltar aos Eventos</a>
+        </div>
+    </nav>
+
+    <div class="container text-center">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-start mt-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <h2 class="mb-4 mt-3">Meus Ingressos</h2>
+        
+        <div class="row justify-content-center">
+            {% for ingresso in ingressos %}
+            <div class="col-md-5 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">{{ ingresso.inscricao.evento.titulo }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Exibe a imagem do QR Code convertida de Base64 -->
+                        <img src="data:image/png;base64,{{ ingresso.qr_code }}" alt="QR Code do Ingresso" class="img-fluid mb-3" style="max-width: 250px;">
+                        
+                        <p class="text-muted mb-1"><strong>Data:</strong> {{ ingresso.inscricao.evento.data_inicio|date:"d/m/Y H:i" }}</p>
+                        
+                        {% if ingresso.inscricao.presenca_confirmada %}
+                            <span class="badge bg-success mt-2">Presença Confirmada</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark mt-2">Aguardando Check-in</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-white border-0 text-muted small">
+                        Apresente este QR Code na portaria do evento.
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">Você ainda não se inscreveu em nenhum evento.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
