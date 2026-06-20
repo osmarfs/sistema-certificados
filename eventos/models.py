@@ -20,7 +20,7 @@ class Inscricao(models.Model):
     # Gera uma string única impossivel de advinhar. Esse será o nosso QR Code.
     ticket_hash = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
-    prsenca_confirmada = models.BooleanField(default=False)
+    presenca_confirmada = models.BooleanField(default=False)
     data_checkin = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):

@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
 from .models import Evento, Inscricao
 import qrcode
 import base64
@@ -55,3 +56,29 @@ def meus_eventos(request):
         })
 
     return render(request, 'eventos/meus_eventos.html', {'ingressos': ingressos})
+
+@login_required(login_url='/admin/login/')
+def validar_checkin(request):
+
+    if request.method == "POST":
+        hash_lido = request.POST.get('ticket_hash')
+
+        try:
+
+            inscricao = Inscricao.objects.get(ticket_hash=hash_lido)
+
+            if inscricao.presenca_confirmada:
+                messages.warning(request, f'Alerta: Check-in já havia sido realizado para {inscricao.aluno.username}.')
+            else:
+
+                inscricao.presenca_confirmada = True
+                inscricao.data_checkin = timezone.now() 
+                inscricao.save()
+                messages.sucess(request, f'Check-in confirmado com sucesso: {inscricao.aluno.username} no evento {inscricao.evento.titulo}.')
+
+        except Inscricao.DoesNotExist:
+            messages.error(request, 'Ingresso inválido. Nenhum registro encontrado para este QR Code')
+        
+        return redirect('validar_checkin')
+
+    return render(request, 'eventos/checkin.html')
