@@ -12,6 +12,8 @@ from .models import Evento, Inscricao, AlunoPerfil
 import qrcode
 import base64
 from io import BytesIO
+import locale
+from datetime import datetime
 
 def lista_eventos(request):
     #Busca todos os eventos cadastrados no banco de dados
@@ -136,38 +138,71 @@ def gerar_certificado(request, inscricao_id):
     p = canvas.Canvas(response, pagesize=landscape(letter))
     width, height = landscape(letter)
 
-    # 1. Aplica a imagem de template do banco de dados como fundo
+    # 1. Imagem de fundo (Template limpo apenas com logos e bordas)
     if evento.template_certificado:
-        # Pega o caminho absoluto da imagem no disco
         caminho_imagem = evento.template_certificado.path
         p.drawImage(caminho_imagem, 0, 0, width=width, height=height)
     else:
-        # Fallback caso o evento não tenha imagem de template
+        # Fallback de segurança
         p.setLineWidth(4)
         p.rect(20, 20, width - 40, height - 40)
         p.setFont("Helvetica-Bold", 32)
-        p.drawCentredString(width / 2, height - 100, "CERTIFICADO DE PARTICIPAÇÃO")
+        p.drawCentredString(width / 2, height - 100, "CERTIFICADO")
 
-    # 2. Resgata o nome e o CPF
-    nome_aluno = f"{inscricao.aluno.first_name} {inscricao.aluno.last_name}".strip()
-    if not nome_aluno:
-        nome_aluno = inscricao.aluno.username
-        
+    # 2. Resgate de dados dinâmicos do banco
+    nome_aluno = f"{inscricao.aluno.first_name} {inscricao.aluno.last_name}".strip() or inscricao.aluno.username
+    
     try:
         cpf_aluno = inscricao.aluno.alunoperfil.cpf
     except AlunoPerfil.DoesNotExist:
-        cpf_aluno = "CPF não registrado"
+        cpf_aluno = ""
 
-    # 3. Desenha os dados do aluno por cima da imagem. 
-    # Eixo X (width/2) centraliza. Eixo Y (height/2) controla a altura.
-    p.setFont("Helvetica-Bold", 26)
-    p.drawCentredString(width / 2, height / 2 + 10, nome_aluno.upper())
+    # Formatação da data para o padrão por extenso (Ex: 07 de julho de 2026)
+    try:
+        locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
+    except:
+        pass
     
+    data_formatada = evento.data_inicio.strftime('%d de %B de %Y')
+
+    # 3. Renderização de todo o texto (Padrão Uninassau)
+    
+    # Linha 1
     p.setFont("Helvetica", 14)
-    p.drawCentredString(width / 2, height / 2 - 20, f"Portador(a) do CPF: {cpf_aluno}")
-    
-    p.setFont("Helvetica-Oblique", 10)
-    p.drawString(30, 30, f"Código de Autenticação: {inscricao.ticket_hash}")
+    p.setFillColorRGB(0.4, 0.4, 0.4) # Cinza
+    p.drawCentredString(width / 2, height - 190, "Este certificado é concedido a")
+
+    # Linha 2: Nome
+    p.setFont("Helvetica-BoldOblique", 32)
+    p.setFillColorRGB(0.1, 0.2, 0.4) # Azul escuro
+    p.drawCentredString(width / 2, height - 240, nome_aluno.title())
+
+    # Linha 3: CPF
+    if cpf_aluno:
+        p.setFont("Helvetica", 12)
+        p.setFillColorRGB(0.4, 0.4, 0.4)
+        p.drawCentredString(width / 2, height - 260, f"CPF: {cpf_aluno}")
+
+    # Linha 4: Texto de participação
+    p.setFont("Helvetica", 14)
+    p.setFillColorRGB(0.4, 0.4, 0.4)
+    texto_participacao = f"por sua participação no curso de extensão online com carga horária de {evento.carga_horaria}h em"
+    p.drawCentredString(width / 2, height - 310, texto_participacao)
+
+    # Linha 5: Nome do Evento
+    p.setFont("Helvetica-Bold", 20)
+    p.setFillColorRGB(0.1, 0.2, 0.4)
+    p.drawCentredString(width / 2, height - 350, evento.titulo.upper())
+
+    # Linha 6: Data
+    p.setFont("Helvetica", 12)
+    p.setFillColorRGB(0.4, 0.4, 0.4)
+    p.drawCentredString(width / 2, height - 420, data_formatada)
+
+    # Código de Validação (Canto inferior direito)
+    p.setFont("Helvetica", 8)
+    p.setFillColorRGB(0.0, 0.0, 0.0) # Preto
+    p.drawRightString(width - 40, 30, f"Código de Validação: {inscricao.ticket_hash}")
 
     p.showPage()
     p.save()
