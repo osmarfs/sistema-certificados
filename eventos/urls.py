@@ -12,6 +12,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='eventos/login.html', next_page='lista_eventos'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='lista_eventos'), name='logout'),
     path('criar-evento/', views.criar_evento, name='criar_evento'),
+    path('historico/', views.historico_eventos, name='historico_eventos'), # <-- Verifique se não falta vírgula
     path('certificado/<int:inscricao_id>/', views.gerar_certificado, name='gerar_certificado'),
     path('perfil/', views.perfil_usuario, name='perfil_usuario'),
 

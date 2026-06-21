@@ -11,19 +11,14 @@
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container">
             <span class="navbar-brand mb-0 h1">Sistema de Certificados - Uninassau</span>
-            
             <div>
                 {% if user.is_authenticated %}
                     <span class="text-light me-3">Olá, {{ user.username }}</span>
-                    
                     {% if perms.eventos.add_evento %}
                         <a href="{% url 'criar_evento' %}" class="btn btn-warning btn-sm me-2">Painel do Palestrante</a>
                     {% endif %}
-                    
                     <a href="{% url 'perfil_usuario' %}" class="btn btn-info btn-sm me-2 text-white">Meu Perfil</a>
-                    
                     <a href="{% url 'meus_eventos' %}" class="btn btn-primary btn-sm me-2">Meus Ingressos</a>
-                    
                     <form action="{% url 'logout' %}" method="post" class="d-inline">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger btn-sm">Sair</button>
@@ -45,11 +40,20 @@
                 <div class="card shadow-sm h-100">
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">{{ evento.titulo }}</h5>
-                        <p class="card-text text-muted mb-4">
-                            <strong>Início:</strong> {{ evento.data_inicio|date:"d/m/Y H:i" }}<br>
-                            <strong>Carga Horária:</strong> {{ evento.carga_horaria }}h
-                        </p>
-                        <a href="{% url 'inscrever_evento' evento.id %}" class="btn btn-primary mt-auto">Inscrever-se</a>
+                        
+                        {% if evento.inscricoes_abertas %}
+                            <p class="text-danger fw-bold mt-2">
+                                ⏰ Encerra em: {{ evento.data_fim_inscricoes|timeuntil }}
+                            </p>
+                            
+                            <form action="{% url 'inscrever_evento' evento.id %}" method="POST" class="mt-auto">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success w-100">Garantir Vaga</button>
+                            </form>
+                        {% else %}
+                            <p class="text-muted mt-2">Inscrições encerradas.</p>
+                            <button class="btn btn-secondary w-100 mt-auto" disabled>Esgotado</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -62,6 +66,5 @@
             {% endfor %}
         </div>
     </div>
-
 </body>
 </html>

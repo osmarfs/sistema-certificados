@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -17,15 +17,26 @@ from datetime import datetime
 
 def lista_eventos(request):
     #Busca todos os eventos cadastrados no banco de dados
-    eventos = Evento.objects.all()
+    #eventos = Evento.objects.all()
+    eventos_abertos = Evento.objects.filter(data_fim_inscricoes__gte=timezone.now()).order_by('data_fim_inscricoes')
+    return render(request, 'eventos/lista_eventos.html', {'eventos': eventos_abertos})
 
     # Envia esses eventos para um arquivo HTML que logo será criado
-    return render(request, 'eventos/lista_eventos.html', {'eventos':eventos})
+    #return render(request, 'eventos/lista_eventos.html', {'eventos':eventos})
+
+def historico_eventos(request):
+    # Filtra eventos que já encerraram as inscrições
+    eventos_encerrados = Evento.objects.filter(data_fim_inscricoes__lt=timezone.now()).order_by('-data_fim_inscricoes')
+    return render(request, 'eventos/historico.html', {'eventos': eventos_encerrados})
 
 @login_required(login_url='/login/')
 def inscrever_evento(request, evento_id):
     # Captura o evento pela ID fornecido na URL
     evento = get_object_or_404(Evento, id=evento_id)
+
+    if not evento.inscricoes_abertas:
+        messages.error(request, 'As inscrições para este evento já foram encerradas.')
+        return redirect('lista_eventos')
 
     # verifica se já ecxiste uma inscrição para este usuário neste evento
     inscricao_existe = Inscricao.objects.filter(aluno=request.user, evento=evento).exists()
@@ -65,7 +76,11 @@ def meus_eventos(request):
 
     return render(request, 'eventos/meus_eventos.html', {'ingressos': ingressos})
 
+def checar_acesso_portaria(user):
+    return user.is_staff
+
 @login_required(login_url='/login/')
+@user_passes_test(checar_acesso_portaria, login_url='/') # Redireciona usuários sem permissão
 def validar_checkin(request):
 
     if request.method == "POST":
@@ -82,7 +97,7 @@ def validar_checkin(request):
                 inscricao.presenca_confirmada = True
                 inscricao.data_checkin = timezone.now() 
                 inscricao.save()
-                messages.sucess(request, f'Check-in confirmado com sucesso: {inscricao.aluno.username} no evento {inscricao.evento.titulo}.')
+                messages.success(request, f'Check-in confirmado com sucesso: {inscricao.aluno.username} no evento {inscricao.evento.titulo}.')
 
         except Inscricao.DoesNotExist:
             messages.error(request, 'Ingresso inválido. Nenhum registro encontrado para este QR Code')
@@ -212,16 +227,24 @@ def gerar_certificado(request, inscricao_id):
 
 @login_required(login_url='/login/')
 def perfil_usuario(request):
-    # Garante que administradores antigos sem perfil não gerem erro ao acessar a tela
-    perfil, created = AlunoPerfil.objects.get_or_create(user=request.user)
-    
+    # Tenta buscar o perfil do usuário. Se não existir, cria apenas na memória (não salva no banco ainda).
+    try:
+        perfil = request.user.alunoperfil
+    except AlunoPerfil.DoesNotExist:
+        perfil = AlunoPerfil(user=request.user)
+        
     if request.method == 'POST':
         form_user = PerfilForm(request.POST, instance=request.user)
         form_perfil = AlunoPerfilForm(request.POST, instance=perfil)
         
         if form_user.is_valid() and form_perfil.is_valid():
             form_user.save()
-            form_perfil.save()
+            
+            # Salva o perfil no banco atrelando-o definitivamente ao usuário logado
+            perfil_salvo = form_perfil.save(commit=False)
+            perfil_salvo.user = request.user
+            perfil_salvo.save()
+            
             messages.success(request, 'Dados atualizados com sucesso.')
             return redirect('perfil_usuario')
     else:
@@ -229,3 +252,4 @@ def perfil_usuario(request):
         form_perfil = AlunoPerfilForm(instance=perfil)
         
     return render(request, 'eventos/perfil.html', {'form_user': form_user, 'form_perfil': form_perfil})
+

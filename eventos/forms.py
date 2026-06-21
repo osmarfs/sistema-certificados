@@ -5,8 +5,10 @@ from django.contrib.auth.models import User
 class EventoForm(forms.ModelForm):
     class Meta:
         model = Evento
-        fields = ['titulo', 'data_inicio', 'data_fim', 'carga_horaria', 'template_certificado']
+        # Certifique-se de que 'data_fim_inscricoes' esteja nesta lista
+        fields = ['titulo', 'data_inicio', 'carga_horaria', 'template_certificado', 'data_fim_inscricoes']
         widgets = {
+            'data_fim_inscricoes': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'data_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'data_fim': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'titulo': forms.TextInput(attrs={'class': 'form-control'}),

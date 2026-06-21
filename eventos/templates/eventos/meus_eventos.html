@@ -48,6 +48,9 @@
                         {% else %}
                             <span class="badge bg-warning text-dark mt-2 d-block">Aguardando Check-in</span>
                         {% endif %}
+                            {% if request.user.is_staff %}
+                            <a href="{% url 'validar_checkin' %}" class="btn btn-primary">Acessar Leitor de QR Code</a>
+                        {% endif %}
                     </div>
                     <div class="card-footer bg-white border-0 text-muted small">
                         Apresente este QR Code na portaria do evento.
