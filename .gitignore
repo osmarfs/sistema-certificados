@@ -1,0 +1,13 @@
+# Ambiente Virtual
+venv/
+
+# Variáveis de Segurança (Extremamente importante)
+.env
+
+# Banco de Dados Local
+db.sqlite3
+
+# Arquivos compilados e de cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
