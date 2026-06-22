@@ -6,7 +6,7 @@ class EventoForm(forms.ModelForm):
     class Meta:
         model = Evento
         # Certifique-se de que 'data_fim_inscricoes' esteja nesta lista
-        fields = ['titulo', 'data_inicio', 'carga_horaria', 'template_certificado', 'data_fim_inscricoes']
+        fields = ['titulo', 'data_inicio', 'carga_horaria', 'template_certificado', 'data_fim_inscricoes', 'data_fim']
         widgets = {
             'data_fim_inscricoes': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'data_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
