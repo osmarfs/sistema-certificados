@@ -40,11 +40,11 @@ class Evento(models.Model):
         return timezone.now() >= horario_permitido
 
     @property
-    def certificado_liberado(self):
-        """Libera o certificado apenas após a data_fim"""
-        if not self.data_fim:
+    def checkin_liberado(self):
+        if not self.data_inicio:
             return False
-        return timezone.now() > self.data_fim
+        horario_permitido = self.data_inicio - timedelta(minutes=30)
+        return timezone.now() >= horario_permitido
     
 class Inscricao(models.Model):
     #relaciona a inscrição ao usuário do sistema e ao evento
