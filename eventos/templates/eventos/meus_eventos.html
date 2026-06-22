@@ -50,15 +50,17 @@
                         {% if ingresso.inscricao.presenca_confirmada %}
                             <div class="mt-2">
                                 <span class="badge bg-success d-block mb-2">Presença Confirmada</span>
-                                <a href="{% url 'gerar_certificado' ingresso.inscricao.id %}" class="btn btn-success btn-sm w-100">Baixar Certificado (PDF)</a>
+                                
+                                {% if ingresso.inscricao.evento.certificado_liberado %}
+                                    <a href="{% url 'gerar_certificado' ingresso.inscricao.id %}" class="btn btn-success btn-sm w-100">Baixar Certificado (PDF)</a>
+                                {% else %}
+                                    <span class="badge bg-info text-dark mt-2 d-block w-100">Certificado disponível no fim do evento</span>
+                                {% endif %}
                             </div>
                         {% else %}
                             <span class="badge bg-warning text-dark mt-2 d-block">Aguardando Check-in</span>
-                            
                             <script>
-                                setTimeout(function(){
-                                    window.location.reload();
-                                }, 5000);
+                                setTimeout(function(){ window.location.reload(); }, 5000);
                             </script>
                         {% endif %}
                            

@@ -87,13 +87,19 @@ def validar_checkin(request):
         hash_lido = request.POST.get('ticket_hash')
 
         try:
-
             inscricao = Inscricao.objects.get(ticket_hash=hash_lido)
+            evento = inscricao.evento # Resgata o evento vinculado ao ingresso
 
+            # 1. Verifica se já fez check-in
             if inscricao.presenca_confirmada:
                 messages.warning(request, f'Alerta: Check-in já havia sido realizado para {inscricao.aluno.username}.')
+            
+            # 2. TRAVA: Verifica se faltam menos de 30 minutos
+            elif not evento.checkin_liberado:
+                messages.error(request, 'Muito cedo! O check-in só é liberado 30 minutos antes do evento começar.')
+            
+            # 3. Se passou pelas travas, salva a presença
             else:
-
                 inscricao.presenca_confirmada = True
                 inscricao.data_checkin = timezone.now() 
                 inscricao.save()
