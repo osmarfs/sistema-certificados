@@ -18,7 +18,7 @@ class Evento(models.Model):
     data_fim = models.DateTimeField(null=True, blank=True)
     carga_horaria = models.IntegerField(help_text="Carga horária em horas")
 
-    data_fim_inscricoes = models.DateTimeField(verbose_name="Fim das Inscrições", null=True, blank=True)
+    data_fim_inscricoes = models.DateTimeField(verbose_name="Fim das Inscrições")
     
     # Esta linha DEVE estar aqui
     template_certificado = models.ImageField(upload_to='templates/', blank=True, null=True)
