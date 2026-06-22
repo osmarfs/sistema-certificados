@@ -20,9 +20,9 @@ DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['*']
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_TRUSTED_ORIGINS = ['https://app-certific-fdewgdg2b9e3cnf7.canadacentral-01.azurewebsites.net',
-                        'https://*.azurewebsites.net'
-                        ]
+CSRF_TRUSTED_ORIGINS = ['https://app-certific-fdewgdg2b9e3cnf7.canadacentral-01.azurewebsites.net']
+                            # 'https://*.azurewebsites.net'
+                        # ]
 
 
 # Application definition
