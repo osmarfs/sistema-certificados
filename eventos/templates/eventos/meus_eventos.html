@@ -54,6 +54,12 @@
                             </div>
                         {% else %}
                             <span class="badge bg-warning text-dark mt-2 d-block">Aguardando Check-in</span>
+                            
+                            <script>
+                                setTimeout(function(){
+                                    window.location.reload();
+                                }, 5000);
+                            </script>
                         {% endif %}
                            
                     </div>
