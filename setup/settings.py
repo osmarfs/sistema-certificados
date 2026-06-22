@@ -19,7 +19,9 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://app-certific-fdewgdg2b9e3cnf7.canadacentral-01.azurewebsites.net']
+CSRF_TRUSTED_ORIGINS = ['https://app-certific-fdewgdg2b9e3cnf7.canadacentral-01.azurewebsites.net',
+                        'https://*.azurewebsites.net'
+                        ]
 
 
 # Application definition
