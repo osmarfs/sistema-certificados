@@ -24,11 +24,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
-        {% endif %}
-        <h2 class="mb-4 mt-3">Meus Ingressos</h2>
-        
-        <div class="row justify-content-center">
-            {% for ingresso in ingressos %}
+                {% endif %}
+                
+                {% if request.user.is_staff %}
+                    <div class="mb-4 mt-4">
+                        <a href="{% url 'validar_checkin' %}" class="btn btn-primary btn-lg shadow w-100" style="max-width: 400px;">📷 Abrir Leitor de QR Code</a>
+                    </div>
+                {% endif %}
+
+                <h2 class="mb-4 mt-3">Meus Ingressos</h2>
+                
+                <div class="row justify-content-center">
+                    {% for ingresso in ingressos %}
             <div class="col-md-5 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-primary text-white">
@@ -48,9 +55,7 @@
                         {% else %}
                             <span class="badge bg-warning text-dark mt-2 d-block">Aguardando Check-in</span>
                         {% endif %}
-                            {% if request.user.is_staff %}
-                            <a href="{% url 'validar_checkin' %}" class="btn btn-primary">Acessar Leitor de QR Code</a>
-                        {% endif %}
+                           
                     </div>
                     <div class="card-footer bg-white border-0 text-muted small">
                         Apresente este QR Code na portaria do evento.
