@@ -15,7 +15,7 @@ class AlunoPerfil(models.Model):
 class Evento(models.Model):
     titulo = models.CharField(max_length=200)
     data_inicio = models.DateTimeField()
-    #data_fim = models.DateTimeField(null=True, blank=True)
+    data_fim = models.DateTimeField(null=True, blank=True)
     carga_horaria = models.IntegerField(help_text="Carga horária em horas")
 
     data_fim_inscricoes = models.DateTimeField(verbose_name="Fim das Inscrições", null=True, blank=True)
