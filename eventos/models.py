@@ -56,6 +56,8 @@ class Inscricao(models.Model):
 
     presenca_confirmada = models.BooleanField(default=False)
     data_checkin = models.DateTimeField(null=True, blank=True)
+      
+      
 
     def __str__(self):
         return f"{self.aluno.username} - {self.evento.titulo}"
